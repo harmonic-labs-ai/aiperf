@@ -182,6 +182,40 @@ Log File: /home/user/Code/aiperf/artifacts/granite4:350m-openai-chat-concurrency
 - [Inputs JSON Replay](docs/tutorials/inputs-json-replay.md) - Verbatim multi-turn replay of AIPerf inputs.json artifacts
 - [Local Tokenizer](docs/tutorials/local-tokenizer.md) - Use local tokenizers without HuggingFace
 
+### TTS Trace Benchmarking
+
+AIPerf supports Text-to-Speech (TTS) trace replay with the `tts_trace` custom dataset type. This loader converts audio duration to codec tokens and generates synthetic text for each request.
+
+**Input JSONL format:**
+
+Each line is a JSON object:
+```json
+{"timestamp": 0, "input_length": 18, "audio_duration_ms": 6160.0, "output_length": 74, "delay": 100}
+{"timestamp": 1812, "input_length": 22, "audio_duration_ms": 4720.0, "output_length": 57, "delay": 200}
+```
+
+Fields:
+- `timestamp`: Request timestamp in milliseconds
+- `input_length`: Input text length in characters
+- `audio_duration_ms`: Audio duration in milliseconds
+- `output_length`: Optional codec token count (estimated from duration if not provided)
+- `delay`: Optional delay before request in milliseconds
+
+**Run TTS trace benchmark:**
+
+```bash
+aiperf profile \
+    --model Qwen/Qwen3-TTS-12Hz-0.6B-Base \
+    --endpoint-type raw \
+    --url http://localhost:8091/v1/audio/speech \
+    --input-file tts_trace_example.jsonl \
+    --custom-dataset-type tts_trace \
+    --fixed-schedule \
+    --no-server-metrics
+```
+
+The loader automatically generates synthetic text for each request using AIPerf's prompt generator to avoid cache hits and ensure realistic benchmarking.
+
 ### Endpoint Types
 - [Embeddings](docs/tutorials/embeddings.md) - Profile embedding models
 - [Rankings](docs/tutorials/rankings.md) - Profile ranking models
